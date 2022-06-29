@@ -121,11 +121,11 @@ final class CalendarViewDelegate {
     /**
      * 支持转换的最小农历年份
      */
-    static final int MIN_YEAR = 1900;
+    public static final int MIN_YEAR = 1;
     /**
      * 支持转换的最大农历年份
      */
-    private static final int MAX_YEAR = 2099;
+    public static final int MAX_YEAR = 2100;
 
     /**
      * 各种字体颜色，看名字知道对应的地方
