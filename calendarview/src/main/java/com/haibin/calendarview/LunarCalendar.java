@@ -334,6 +334,8 @@ public final class LunarCalendar {
      * @param calendar calendar
      */
     public static void setupLunarCalendar(Calendar calendar) {
+        try{
+
         int year = calendar.getYear();
         int month = calendar.getMonth();
         int day = calendar.getDay();
@@ -373,6 +375,10 @@ public final class LunarCalendar {
             calendar.setLunar(lunarText);
         }
         lunarCalendar.setLunar(lunarText);
+
+        }catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
     /**
