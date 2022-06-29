@@ -3,12 +3,14 @@ package com.bigkoo.pickerviewdemo;
 import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -123,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void initLunarPicker() {
         Calendar selectedDate = Calendar.getInstance();//系统当前时间
         Calendar startDate = Calendar.getInstance();
-        startDate.set(2014, 1, 23);
+        startDate.set(0, 1, 23);
         Calendar endDate = Calendar.getInstance();
         endDate.set(2069, 2, 28);
         //时间选择器 ，自定义布局
@@ -210,7 +212,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 })
                 .setDate(Calendar.getInstance())
-                .setType(new boolean[]{false, false,false, true, true,false})
+                .setType(new boolean[]{false, false, false, true, true, false})
                 .isDialog(true) //默认设置false ，内部实现将DecorView 作为它的父控件。
                 .addOnCancelClickListener(new View.OnClickListener() {
                     @Override
@@ -374,7 +376,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String tx = cardItem.get(options1).getPickerViewText();
                 btn_CustomOptions.setText(tx);
             }
-        })
+        }).isDialog(true)
                 .setLayoutRes(R.layout.pickerview_custom_options, new CustomListener() {
                     @Override
                     public void customLayout(View v) {
@@ -409,6 +411,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .isDialog(true)
                 .setOutSideCancelable(false)
                 .build();
+
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM);
+        params.leftMargin = 0;
+        params.rightMargin = 0;
+        pvCustomOptions.getDialogContainerLayout().setLayoutParams(params);
+
+        WindowManager.LayoutParams attributes = pvCustomOptions.getDialog().getWindow().getAttributes();
+        attributes.width = WindowManager.LayoutParams.MATCH_PARENT;
+        pvCustomOptions.getDialog().getWindow().setAttributes(attributes);
 
         pvCustomOptions.setPicker(cardItem);//添加数据
 
