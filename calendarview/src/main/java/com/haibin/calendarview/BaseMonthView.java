@@ -17,12 +17,22 @@ package com.haibin.calendarview;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.util.SparseIntArray;
+import android.view.ViewGroup;
 
 /**
  * 月视图基础控件,可自由继承实现
  * 可通过此扩展各种视图如：MonthView、RangeMonthView、MultiMonthView
  */
 public abstract class BaseMonthView extends BaseView {
+
+    /**
+     * 实现此接口的MonthView不作为ViewPager的直接孩子，由{@link #getPageRootView()}提供，
+     * 其中MonthView需要自己建立与返回的页面根View的联系（将自己add到getPageRootView）
+     */
+    public interface NonPageRootMonthView {
+        ViewGroup getPageRootView();
+    }
 
     MonthViewPager mMonthViewPager;
 
@@ -53,6 +63,11 @@ public abstract class BaseMonthView extends BaseView {
      */
     protected int mNextDiff;
 
+    /**
+     * 每一行的额外高度
+     */
+    protected SparseIntArray mLineExtraHeights;
+
 
     public BaseMonthView(Context context) {
         super(context);
@@ -68,8 +83,7 @@ public abstract class BaseMonthView extends BaseView {
         mYear = year;
         mMonth = month;
         initCalendar();
-        mHeight = CalendarUtil.getMonthViewHeight(year, month, mItemHeight, mDelegate.getWeekStart(),
-                mDelegate.getMonthViewShowMode());
+        mHeight = getMonthViewHeight();
 
     }
 
@@ -123,7 +137,7 @@ public abstract class BaseMonthView extends BaseView {
         if (indexX >= 7) {
             indexX = 6;
         }
-        int indexY = (int) mY / mItemHeight;
+        int indexY = getLineWithY((int) mY);
         int position = indexY * 7 + indexX;// 选择项
         if (position >= 0 && position < mItems.size()) {
             return mItems.get(position);
@@ -181,8 +195,7 @@ public abstract class BaseMonthView extends BaseView {
     final void updateShowMode() {
         mLineCount = CalendarUtil.getMonthViewLineCount(mYear, mMonth,
                 mDelegate.getWeekStart(), mDelegate.getMonthViewShowMode());
-        mHeight = CalendarUtil.getMonthViewHeight(mYear, mMonth, mItemHeight, mDelegate.getWeekStart(),
-                mDelegate.getMonthViewShowMode());
+        mHeight = getMonthViewHeight();
         invalidate();
     }
 
@@ -191,15 +204,79 @@ public abstract class BaseMonthView extends BaseView {
      */
     final void updateWeekStart() {
         initCalendar();
-        mHeight = CalendarUtil.getMonthViewHeight(mYear, mMonth, mItemHeight, mDelegate.getWeekStart(),
-                mDelegate.getMonthViewShowMode());
+        mHeight = getMonthViewHeight();
     }
 
     @Override
     void updateItemHeight() {
         super.updateItemHeight();
-        mHeight = CalendarUtil.getMonthViewHeight(mYear, mMonth, mItemHeight, mDelegate.getWeekStart(),
+        mHeight = getMonthViewHeight();
+    }
+
+    /**
+     * 获取整个MonthView的高度，子类可按需重写
+     */
+    protected int getMonthViewHeight() {
+        int height = CalendarUtil.getMonthViewHeight(mYear, mMonth, mItemHeight, mDelegate.getWeekStart(),
                 mDelegate.getMonthViewShowMode());
+        if (mLineExtraHeights != null) {
+            for (int i = 0; i < mLineExtraHeights.size(); i++) {
+                height += mLineExtraHeights.valueAt(i);
+            }
+        }
+        return height;
+    }
+
+    protected int getLineWithY(int y) {
+        int line = 0;
+        int height = 0;
+        while (line < mLineCount) {
+            height += mItemHeight + getLineExtraHeight(line);
+            if (y <= height) {
+                return line;
+            }
+            line += 1;
+        }
+
+        return line;
+    }
+
+    protected int getLineTop(int line) {
+        int cur = 0;
+        int height = 0;
+        while (cur < line) {
+            height += mItemHeight + getLineExtraHeight(cur);
+            cur += 1;
+        }
+
+        return height;
+    }
+
+    protected int getLineExtraHeight(int line) {
+        if (mLineExtraHeights == null) {
+            return 0;
+        }
+
+        return mLineExtraHeights.get(line);
+    }
+
+    protected void setLineExtraHeight(int line, int extraHeight) {
+        if (mLineExtraHeights == null) {
+            mLineExtraHeights = new SparseIntArray();
+        }
+        if (mLineExtraHeights.get(line) != extraHeight) {
+            mLineExtraHeights.put(line, extraHeight);
+            mHeight = getMonthViewHeight();
+            requestLayout();
+        }
+    }
+
+    protected void clearLineExtraHeight() {
+        if (mLineExtraHeights != null) {
+            mLineExtraHeights.clear();
+            mHeight = getMonthViewHeight();
+            requestLayout();
+        }
     }
 
 

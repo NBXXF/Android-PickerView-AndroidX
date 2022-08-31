@@ -19,6 +19,8 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.view.View;
 
+import androidx.annotation.CallSuper;
+
 /**
  * 月视图基础控件,可自由继承实现
  * Created by huanghaibin on 2017/11/15.
@@ -39,7 +41,9 @@ public abstract class MonthView extends BaseMonthView {
         onPreviewHook();
         int count = mLineCount * 7;
         int d = 0;
+        int extraHeight = 0;
         for (int i = 0; i < mLineCount; i++) {
+            extraHeight += getLineExtraHeight(i - 1);
             for (int j = 0; j < 7; j++) {
                 Calendar calendar = mItems.get(d);
                 if (mDelegate.getMonthViewShowMode() == CalendarViewDelegate.MODE_ONLY_CURRENT_MONTH) {
@@ -55,7 +59,7 @@ public abstract class MonthView extends BaseMonthView {
                         return;
                     }
                 }
-                draw(canvas, calendar, i, j, d);
+                draw(canvas, calendar, i, j, d, extraHeight);
                 ++d;
             }
         }
@@ -71,9 +75,9 @@ public abstract class MonthView extends BaseMonthView {
      * @param j        j
      * @param d        d
      */
-    private void draw(Canvas canvas, Calendar calendar, int i, int j, int d) {
+    private void draw(Canvas canvas, Calendar calendar, int i, int j, int d, int extraLineHeight) {
         int x = j * mItemWidth + mDelegate.getCalendarPaddingLeft();
-        int y = i * mItemHeight;
+        int y = i * mItemHeight + extraLineHeight;
         onLoopStart(x, y);
         boolean isSelected = d == mCurrentItem;
         boolean hasScheme = calendar.hasScheme();
@@ -148,9 +152,7 @@ public abstract class MonthView extends BaseMonthView {
 
         }
 
-        if (mDelegate.mCalendarSelectListener != null) {
-            mDelegate.mCalendarSelectListener.onCalendarSelect(calendar, true);
-        }
+        onUserSelectCalendar(calendar, true);
     }
 
     @Override
@@ -214,9 +216,7 @@ public abstract class MonthView extends BaseMonthView {
 
         }
 
-        if (mDelegate.mCalendarSelectListener != null) {
-            mDelegate.mCalendarSelectListener.onCalendarSelect(calendar, true);
-        }
+        onUserSelectCalendar(calendar, true);
 
         if (mDelegate.mCalendarLongClickListener != null) {
             mDelegate.mCalendarLongClickListener.onCalendarLongClick(calendar);
@@ -224,6 +224,14 @@ public abstract class MonthView extends BaseMonthView {
         invalidate();
         return true;
     }
+
+    @CallSuper
+    protected void onUserSelectCalendar(Calendar calendar, boolean isClick) {
+        if (mDelegate.mCalendarSelectListener != null) {
+            mDelegate.mCalendarSelectListener.onCalendarSelect(calendar, isClick);
+        }
+    }
+
 
     /**
      * 绘制选中的日期

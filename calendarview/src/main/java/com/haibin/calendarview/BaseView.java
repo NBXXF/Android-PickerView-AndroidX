@@ -370,10 +370,19 @@ public abstract class BaseView extends View implements View.OnClickListener, Vie
         if (mDelegate.mSchemeDatesMap == null || mDelegate.mSchemeDatesMap.size() == 0) {//清空操作
             removeSchemes();
             invalidate();
+            onSchemaUpdate();
             return;
         }
         addSchemesFromMap();
         invalidate();
+        onSchemaUpdate();
+    }
+
+    /**
+     * schema更新后回调
+     */
+    protected void onSchemaUpdate() {
+
     }
 
 

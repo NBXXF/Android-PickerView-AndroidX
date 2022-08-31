@@ -93,14 +93,22 @@ public final class MonthViewPager extends ViewPager {
                 if (mDelegate.getMonthViewShowMode() == CalendarViewDelegate.MODE_ALL_MONTH) {
                     return;
                 }
+
+                View currentView = getCurrentMonthView();
+                int currentViewHeight;
+                if (currentView != null && currentView.getHeight() > 0) {
+                    currentViewHeight = currentView.getHeight();
+                } else {
+                    currentViewHeight = mCurrentViewHeight;
+                }
                 int height;
                 if (position < getCurrentItem()) {//右滑-1
                     height = (int) ((mPreViewHeight)
                             * (1 - positionOffset) +
-                            mCurrentViewHeight
+                            currentViewHeight
                                     * positionOffset);
                 } else {//左滑+！
-                    height = (int) ((mCurrentViewHeight)
+                    height = (int) ((currentViewHeight)
                             * (1 - positionOffset) +
                             (mNextViewHeight)
                                     * positionOffset);
@@ -402,13 +410,44 @@ public final class MonthViewPager extends ViewPager {
         }
     }
 
+    private BaseMonthView getCurrentMonthView() {
+        int current = getCurrentItem();
+        for (int i = 0; i < getChildCount(); i++) {
+            BaseMonthView monthView = getPageMonthView(i);
+            if (monthView != null) {
+                int pos = (int) monthView.getTag();
+                if (current == pos) {
+                    return monthView;
+                }
+            }
+        }
+        return null;
+    }
+
+    private BaseMonthView getPageMonthView(int childIndex) {
+        return getPageMonthView(getChildAt(childIndex));
+    }
+
+    public BaseMonthView getPageMonthView(View page) {
+        if (page instanceof BaseMonthView) {
+            return (BaseMonthView) page;
+        }
+
+        Object tag = page.getTag(R.id.calendar_month_page_real_view);
+        if (tag instanceof BaseMonthView) {
+            return (BaseMonthView) tag;
+        }
+
+        return null;
+    }
+
 
     /**
      * 更新选择效果
      */
     void updateSelected() {
         for (int i = 0; i < getChildCount(); i++) {
-            BaseMonthView view = (BaseMonthView) getChildAt(i);
+            BaseMonthView view = getPageMonthView(i);
             view.setSelectedCalendar(mDelegate.mSelectedCalendar);
             view.invalidate();
         }
@@ -419,7 +458,7 @@ public final class MonthViewPager extends ViewPager {
      */
     final void updateStyle() {
         for (int i = 0; i < getChildCount(); i++) {
-            BaseMonthView view = (BaseMonthView) getChildAt(i);
+            BaseMonthView view = getPageMonthView(i);
             view.updateStyle();
             view.invalidate();
         }
@@ -430,7 +469,7 @@ public final class MonthViewPager extends ViewPager {
      */
     void updateScheme() {
         for (int i = 0; i < getChildCount(); i++) {
-            BaseMonthView view = (BaseMonthView) getChildAt(i);
+            BaseMonthView view = getPageMonthView(i);
             view.update();
         }
     }
@@ -440,7 +479,7 @@ public final class MonthViewPager extends ViewPager {
      */
     void updateCurrentDate() {
         for (int i = 0; i < getChildCount(); i++) {
-            BaseMonthView view = (BaseMonthView) getChildAt(i);
+            BaseMonthView view = getPageMonthView(i);
             view.updateCurrentDate();
         }
     }
@@ -451,7 +490,7 @@ public final class MonthViewPager extends ViewPager {
      */
     void updateShowMode() {
         for (int i = 0; i < getChildCount(); i++) {
-            BaseMonthView view = (BaseMonthView) getChildAt(i);
+            BaseMonthView view = getPageMonthView(i);
             view.updateShowMode();
             view.requestLayout();
         }
@@ -475,7 +514,7 @@ public final class MonthViewPager extends ViewPager {
      */
     void updateWeekStart() {
         for (int i = 0; i < getChildCount(); i++) {
-            BaseMonthView view = (BaseMonthView) getChildAt(i);
+            BaseMonthView view = getPageMonthView(i);
             view.updateWeekStart();
             view.requestLayout();
         }
@@ -496,7 +535,7 @@ public final class MonthViewPager extends ViewPager {
      */
     final void updateItemHeight() {
         for (int i = 0; i < getChildCount(); i++) {
-            BaseMonthView view = (BaseMonthView) getChildAt(i);
+            BaseMonthView view = getPageMonthView(i);
             view.updateItemHeight();
             view.requestLayout();
         }
@@ -537,7 +576,7 @@ public final class MonthViewPager extends ViewPager {
      */
     final void clearSelectRange() {
         for (int i = 0; i < getChildCount(); i++) {
-            BaseMonthView view = (BaseMonthView) getChildAt(i);
+            BaseMonthView view = getPageMonthView(i);
             view.invalidate();
         }
     }
@@ -547,7 +586,7 @@ public final class MonthViewPager extends ViewPager {
      */
     final void clearSingleSelect() {
         for (int i = 0; i < getChildCount(); i++) {
-            BaseMonthView view = (BaseMonthView) getChildAt(i);
+            BaseMonthView view = getPageMonthView(i);
             view.mCurrentItem = -1;
             view.invalidate();
         }
@@ -558,7 +597,7 @@ public final class MonthViewPager extends ViewPager {
      */
     final void clearMultiSelect() {
         for (int i = 0; i < getChildCount(); i++) {
-            BaseMonthView view = (BaseMonthView) getChildAt(i);
+            BaseMonthView view = getPageMonthView(i);
             view.mCurrentItem = -1;
             view.invalidate();
         }
@@ -635,15 +674,21 @@ public final class MonthViewPager extends ViewPager {
             view.setTag(position);
             view.initMonthWithDate(year, month);
             view.setSelectedCalendar(mDelegate.mSelectedCalendar);
-            container.addView(view);
-            return view;
+
+            View page = view;
+            if (view instanceof BaseMonthView.NonPageRootMonthView) {
+                page = ((BaseMonthView.NonPageRootMonthView) view).getPageRootView();
+                page.setTag(R.id.calendar_month_page_real_view, view);
+            }
+            container.addView(page);
+            return page;
         }
 
         @Override
         public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-            BaseView view = (BaseView) object;
+            BaseView view = getPageMonthView((View) object);
             view.onDestroy();
-            container.removeView(view);
+            container.removeView((View) object);
         }
     }
 
