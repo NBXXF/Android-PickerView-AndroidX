@@ -609,17 +609,31 @@ public class CalendarLayout extends LinearLayout {
 
 
     public void setModeBothMonthWeekView() {
+        if (mCalendarShowMode == CALENDAR_SHOW_MODE_BOTH_MONTH_WEEK_VIEW) {
+            return;
+        }
+
         mCalendarShowMode = CALENDAR_SHOW_MODE_BOTH_MONTH_WEEK_VIEW;
+        hideWeek(true);
         requestLayout();
     }
 
     public void setModeOnlyWeekView() {
+        if (mCalendarShowMode == CALENDAR_SHOW_MODE_ONLY_WEEK_VIEW) {
+            return;
+        }
+
         mCalendarShowMode = CALENDAR_SHOW_MODE_ONLY_WEEK_VIEW;
+        showWeek();
         requestLayout();
     }
 
     public void setModeOnlyMonthView() {
+        if (mCalendarShowMode == CALENDAR_SHOW_MODE_ONLY_MONTH_VIEW) {
+            return;
+        }
         mCalendarShowMode = CALENDAR_SHOW_MODE_ONLY_MONTH_VIEW;
+        hideWeek(true);
         requestLayout();
     }
 
@@ -811,7 +825,7 @@ public class CalendarLayout extends LinearLayout {
                 }
             });
         } else {
-            if (mDelegate.mViewChangeListener == null) {
+            if (mDelegate == null || mDelegate.mViewChangeListener == null) {
                 return;
             }
             post(new Runnable() {

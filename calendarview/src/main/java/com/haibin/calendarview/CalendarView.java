@@ -813,6 +813,36 @@ public class CalendarView extends FrameLayout {
         mWeekBar.onDateSelected(mDelegate.mSelectedCalendar, mDelegate.getWeekStart(), false);
     }
 
+    public View getWeekLine() {
+        return mWeekLine;
+    }
+
+    public void setWeekBarVisible(boolean visible) {
+        int topMargin = 0;
+        if (visible) {
+            mWeekBar.setVisibility(VISIBLE);
+            topMargin += mDelegate.getWeekBarHeight();
+        } else {
+            mWeekBar.setVisibility(GONE);
+        }
+
+        if (mWeekLine.getVisibility() == VISIBLE) {
+            MarginLayoutParams wlParams = (MarginLayoutParams) mWeekLine.getLayoutParams();
+            wlParams.topMargin = topMargin;
+            mWeekLine.setLayoutParams(wlParams);
+
+            topMargin += CalendarUtil.dipToPx(getContext(), 1);
+        }
+
+        MarginLayoutParams wpParams = (MarginLayoutParams) mWeekPager.getLayoutParams();
+        wpParams.topMargin = topMargin;
+        mWeekPager.setLayoutParams(wpParams);
+
+        MarginLayoutParams mpParams = (MarginLayoutParams) mMonthPager.getLayoutParams();
+        mpParams.topMargin = topMargin;
+        mMonthPager.setLayoutParams(mpParams);
+    }
+
 
     /**
      * 添加日期拦截事件
